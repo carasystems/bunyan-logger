@@ -89,6 +89,7 @@ module.exports.requestIdContext = function (opts) {
  *
  * Parameters:
  *  - opts: object with optional properties
+ *    - ignorePaths: path to ignore logging
  *    - durationField: name of duration field
  *    - levelFn: function (status, err)
  *    - updateLogFields: function (data)
@@ -99,6 +100,8 @@ module.exports.requestIdContext = function (opts) {
  */
 module.exports.requestLogger = function (opts) {
   opts = opts || {};
+
+  var ignorePaths = opts.ignorePaths || [];
 
   var levelFn = opts.levelFn || function (status, err) {
     if (status >= 500) {
@@ -124,6 +127,11 @@ module.exports.requestLogger = function (opts) {
   };
 
   return function *requestLogger(next) {
+    if (_.indexOf(ignorePaths, this.path) !== -1) {
+      yield *next;
+      return;
+    }
+
     var url = this.url;
 
     var requestData = {

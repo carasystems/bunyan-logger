@@ -91,11 +91,26 @@ describe('koaBunyanLogger', function () {
       assert.equal(record(1).res.statusCode, status);
     }
 
+    function checkEmptyRequestResponse () {
+      assert.equal(ringBuffer.records.length, 0);
+    }
+
     it('logs requests', function *() {
       app.use(koaBunyanLogger.requestLogger());
       app.use(helloWorld);
 
       yield request().get('/').expect(200).end();
+
+      checkRequestResponse(200);
+    });
+
+    it('logs requests', function *() {
+      app.use(koaBunyanLogger.requestLogger({
+        ignorePaths: ['/status'],
+      }));
+      app.use(helloWorld);
+
+      yield request().get('/status').expect(200).end();
 
       checkRequestResponse(200);
     });
