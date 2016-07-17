@@ -104,7 +104,7 @@ describe('koaBunyanLogger', function () {
       checkRequestResponse(200);
     });
 
-    it('logs requests', function *() {
+    it('do not log requests due to ignorePaths', function *() {
       app.use(koaBunyanLogger.requestLogger({
         ignorePaths: ['/status'],
       }));
@@ -112,7 +112,7 @@ describe('koaBunyanLogger', function () {
 
       yield request().get('/status').expect(200).end();
 
-      checkRequestResponse(200);
+      checkEmptyRequestResponse();
     });
 
     it('logs 404 errors', function *() {
