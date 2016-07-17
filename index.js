@@ -127,7 +127,7 @@ module.exports.requestLogger = function (opts) {
   };
 
   return function *requestLogger(next) {
-    if (_.indexOf(ignorePaths, this.path) !== -1) {
+    if (ignorePaths.indexOf(this.path) >= 0) {
       yield *next;
       return;
     }
