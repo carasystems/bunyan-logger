@@ -5,6 +5,45 @@ var uuid = require('node-uuid');
 var util = require('util');
 var onFinished = require('on-finished');
 
+const stringDesensitization = (str) => {
+  if(!str || str.length == 0) {
+    return str;
+  }
+
+  return str.substr(0, str.length <= 6 ? str.length/2 : 6) + '***';
+}
+
+const purgeHeaders = (headers) => {
+  if (!headers) {
+    return headers;
+  }
+
+  const copy = { ...headers };
+  Object.keys(copy).map((key) => {
+    if (key === 'session-token') {
+      copy[key] = stringDesensitization(copy[key]);
+    }
+  });
+  return copy;
+}
+
+const serializers = {
+  req: function(req) {
+    if (!req || !req.connection) {
+      return req;
+    }
+    return {
+      method: req.method,
+      url: req.url,
+      headers: purgeHeaders(req.headers),
+      remoteAddress: req.connection.remoteAddress,
+      remotePort: req.connection.remotePort
+    };
+  },
+  res: bunyan.stdSerializers.res,
+  err: bunyan.stdSerializers.err,
+}
+
 /*
  * If logger is a bunyan logger instance, return it;
  * otherwise, create a new logger with some reasonable defaults.
@@ -18,6 +57,7 @@ function createOrUseLogger(logger) {
     logger = bunyan.createLogger(loggerOpts);
   }
 
+  logger.addSerializers(serializers);
   return logger;
 }
 
