@@ -202,6 +202,22 @@ describe('koaBunyanLogger', function () {
       assert.ok(record(2).msg.match(RES_MESSAGE));
       assert.equal(record(2).res.statusCode, 200);
     });
+
+    it('headers desensitization, <= 6', function *() {
+      app.use(koaBunyanLogger.requestLogger({}));
+
+      app.use(function *helloworld() {
+        this.body = this.headers;
+      });
+
+      const res = yield request().get('/').set('session-token', '123456789').expect(200).end();
+      assert.equal(ringBuffer.records.length, 2);
+      assert.ok(record(0).msg.match(REQ_MESSAGE));
+
+      assert.ok(res.body['session-token'] === '123456789');
+      assert.ok(record(1).req);
+      assert.ok(record(1).req.headers['session-token'] === '123456***');
+    });
   });
 
   describe('koaBunyanLogger.requestIdContext', function () {
